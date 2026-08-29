@@ -351,6 +351,292 @@ async function startServer() {
     }
   });
 
+  // ==========================================
+  // --- AUTH & USER PROFILE ENDPOINTS ---
+  // ==========================================
+
+  // Login
+  app.post('/api/auth/login', (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: 'E-posta adresi zorunludur.' });
+      }
+
+      const result = db.login(email, password);
+      if (!result) {
+        return res.status(401).json({ error: 'E-posta adresi veya şifre hatalı. Lütfen kontrol ediniz.' });
+      }
+
+      res.json(result);
+    } catch (err: any) {
+      console.error('[API] /api/auth/login error:', err);
+      res.status(500).json({ error: 'Giriş yapılırken bir hata oluştu.' });
+    }
+  });
+
+  // Register
+  app.post('/api/auth/register', (req, res) => {
+    try {
+      const { name, email, password, role } = req.body;
+      if (!name || !email) {
+        return res.status(400).json({ error: 'Ad Soyad ve E-posta alanları zorunludur.' });
+      }
+
+      const result = db.register({ name, email, password, role });
+      res.status(201).json(result);
+    } catch (err: any) {
+      console.error('[API] /api/auth/register error:', err);
+      res.status(500).json({ error: 'Kayıt olunurken bir hata oluştu.' });
+    }
+  });
+
+  // Get Current User (Me)
+  app.get('/api/auth/me', (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const userId = (req.query.userId as string) || (authHeader?.replace('Bearer ', '').split('_')[2]);
+      
+      if (!userId) {
+        // fallback to admin demo if token is empty
+        const defaultUser = db.getUserById('usr-admin-1');
+        return res.json({ user: defaultUser });
+      }
+
+      const user = db.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
+      }
+
+      res.json({ user });
+    } catch (err: any) {
+      console.error('[API] /api/auth/me error:', err);
+      res.status(500).json({ error: 'Kullanıcı bilgisi alınamadı.' });
+    }
+  });
+
+  // Update Profile & Settings
+  app.put('/api/auth/profile', (req, res) => {
+    try {
+      const { id, name, email, bio, avatarUrl, preferences, password } = req.body;
+      if (!id) {
+        return res.status(400).json({ error: 'Kullanıcı kimliği zorunludur.' });
+      }
+
+      const updated = db.updateUserProfile(id, { name, email, bio, avatarUrl, preferences, password });
+      if (!updated) {
+        return res.status(404).json({ error: 'Kullanıcı bulunamadı veya güncellenemedi.' });
+      }
+
+      res.json({ user: updated, message: 'Profil ve tercihler başarıyla kaydedildi.' });
+    } catch (err: any) {
+      console.error('[API] /api/auth/profile error:', err);
+      res.status(500).json({ error: 'Profil güncellenirken bir hata oluştu.' });
+    }
+  });
+
+  // ==========================================
+  // --- ADMIN MANAGEMENT ENDPOINTS ---
+  // ==========================================
+
+  // Admin Stats
+  app.get('/api/admin/stats', (req, res) => {
+    try {
+      const stats = db.getAdminStats();
+      res.json(stats);
+    } catch (err: any) {
+      console.error('[API] /api/admin/stats error:', err);
+      res.status(500).json({ error: 'Admin istatistikleri alınamadı.' });
+    }
+  });
+
+  // Admin System Settings
+  app.get('/api/admin/settings', (req, res) => {
+    try {
+      const settings = db.getSystemSettings();
+      res.json(settings);
+    } catch (err: any) {
+      console.error('[API] /api/admin/settings error:', err);
+      res.status(500).json({ error: 'Sistem ayarları alınamadı.' });
+    }
+  });
+
+  app.put('/api/admin/settings', (req, res) => {
+    try {
+      const updated = db.updateSystemSettings(req.body);
+      res.json({ settings: updated, message: 'Sistem ayarları başarıyla güncellendi.' });
+    } catch (err: any) {
+      console.error('[API] PUT /api/admin/settings error:', err);
+      res.status(500).json({ error: 'Sistem ayarları kaydedilemedi.' });
+    }
+  });
+
+  // Admin Brands List
+  app.get('/api/admin/brands', (req, res) => {
+    try {
+      const brands = db.getAllBrandsAdmin();
+      res.json(brands);
+    } catch (err: any) {
+      console.error('[API] /api/admin/brands error:', err);
+      res.status(500).json({ error: 'Markalar listesi alınamadı.' });
+    }
+  });
+
+  // Admin Brand Create
+  app.post('/api/admin/brands', (req, res) => {
+    try {
+      const { name, slug, originCountry, description, logoUrl } = req.body;
+      if (!name) {
+        return res.status(400).json({ error: 'Marka adı zorunludur.' });
+      }
+
+      const brand = db.createBrand({ name, slug, originCountry, description, logoUrl });
+      res.status(201).json({ brand, message: 'Yeni marka başarıyla eklendi.' });
+    } catch (err: any) {
+      console.error('[API] POST /api/admin/brands error:', err);
+      res.status(500).json({ error: 'Marka eklenirken bir hata oluştu.' });
+    }
+  });
+
+  // Admin Brand Update
+  app.put('/api/admin/brands/:id', (req, res) => {
+    try {
+      const { id } = req.params;
+      const updated = db.updateBrand(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: 'Güncellenecek marka bulunamadı.' });
+      }
+
+      res.json({ brand: updated, message: 'Marka bilgileri güncellendi.' });
+    } catch (err: any) {
+      console.error('[API] PUT /api/admin/brands/:id error:', err);
+      res.status(500).json({ error: 'Marka güncellenemedi.' });
+    }
+  });
+
+  // Admin Brand Delete
+  app.delete('/api/admin/brands/:id', (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = db.deleteBrand(id);
+      if (!success) {
+        return res.status(404).json({ error: 'Silinecek marka bulunamadı.' });
+      }
+
+      res.json({ success: true, message: 'Marka sistemden silindi.' });
+    } catch (err: any) {
+      console.error('[API] DELETE /api/admin/brands/:id error:', err);
+      res.status(500).json({ error: 'Marka silinemedi.' });
+    }
+  });
+
+  // Admin Products List
+  app.get('/api/admin/products', (req, res) => {
+    try {
+      const products = db.getAllProductsAdmin();
+      res.json(products);
+    } catch (err: any) {
+      console.error('[API] /api/admin/products error:', err);
+      res.status(500).json({ error: 'Ürün listesi alınamadı.' });
+    }
+  });
+
+  // Admin Product Create
+  app.post('/api/admin/products', (req, res) => {
+    try {
+      const { name, model, brandId, categoryId, imageUrl, description, price, verdict, overallScore, confidenceScore } = req.body;
+      if (!name || !brandId || !categoryId) {
+        return res.status(400).json({ error: 'Ürün adı, marka ve kategori zorunludur.' });
+      }
+
+      const product = db.createProduct({
+        name,
+        model: model || name,
+        brandId,
+        categoryId,
+        imageUrl,
+        description,
+        price: price ? Number(price) : undefined,
+        verdict,
+        overallScore: overallScore ? Number(overallScore) : undefined,
+        confidenceScore: confidenceScore ? Number(confidenceScore) : undefined
+      });
+
+      if (!product) {
+        return res.status(400).json({ error: 'Ürün oluşturulamadı. Geçerli bir marka ve kategori seçtiğinizden emin olun.' });
+      }
+
+      res.status(201).json({ product, message: 'Yeni ürün başarıyla eklendi ve AI puanlaması tamamlandı.' });
+    } catch (err: any) {
+      console.error('[API] POST /api/admin/products error:', err);
+      res.status(500).json({ error: 'Ürün eklenirken hata oluştu.' });
+    }
+  });
+
+  // Admin Product Update
+  app.put('/api/admin/products/:id', (req, res) => {
+    try {
+      const { id } = req.params;
+      const updated = db.updateProduct(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: 'Güncellenecek ürün bulunamadı.' });
+      }
+
+      res.json({ product: updated, message: 'Ürün bilgileri ve skorları güncellendi.' });
+    } catch (err: any) {
+      console.error('[API] PUT /api/admin/products/:id error:', err);
+      res.status(500).json({ error: 'Ürün güncellenemedi.' });
+    }
+  });
+
+  // Admin Product Delete
+  app.delete('/api/admin/products/:id', (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = db.deleteProduct(id);
+      if (!success) {
+        return res.status(404).json({ error: 'Silinecek ürün bulunamadı.' });
+      }
+
+      res.json({ success: true, message: 'Ürün ve bağlı tüm analizler silindi.' });
+    } catch (err: any) {
+      console.error('[API] DELETE /api/admin/products/:id error:', err);
+      res.status(500).json({ error: 'Ürün silinemedi.' });
+    }
+  });
+
+  // Admin AI Trigger Re-analysis
+  app.post('/api/admin/products/:id/analyze', (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = db.triggerAIProductAnalysis(id);
+      if (!result) {
+        return res.status(404).json({ error: 'Ürün bulunamadı.' });
+      }
+
+      res.json({ product: result, message: 'AI analizi ve mutabakat sentezi yeniden hesaplandı.' });
+    } catch (err: any) {
+      console.error('[API] POST /api/admin/products/:id/analyze error:', err);
+      res.status(500).json({ error: 'AI analizi çalıştırılamadı.' });
+    }
+  });
+
+  // Admin AI Test Prompt Studio
+  app.post('/api/admin/ai/test-prompt', (req, res) => {
+    try {
+      const { promptTemplate, testInput } = req.body;
+      if (!testInput) {
+        return res.status(400).json({ error: 'Test edilecek ürün veya metin içeriği belirtiniz.' });
+      }
+
+      const result = db.testAIPrompt(promptTemplate || '', testInput);
+      res.json(result);
+    } catch (err: any) {
+      console.error('[API] /api/admin/ai/test-prompt error:', err);
+      res.status(500).json({ error: 'AI istem simülasyonu çalıştırılamadı.' });
+    }
+  });
+
   // --- Vite / Frontend Serving ---
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

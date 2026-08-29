@@ -5,13 +5,18 @@ import {
   ProductDetailData, 
   Category, 
   Brand,
+  Product,
   MultiCompareResponse,
   ProductFinderResponse,
   CommunityReview,
   AskConsensusQuestionResponse,
   CommunityPollStats,
   UpgradeAdviceResponse,
-  DealsResponse
+  DealsResponse,
+  User,
+  AuthResponse,
+  SystemSettings,
+  AdminStats
 } from '../types/index.js';
 
 export class ApiError extends Error {
@@ -261,6 +266,112 @@ export const api = {
 
   async getDeals(): Promise<DealsResponse> {
     return request<DealsResponse>('/api/deals');
+  },
+
+  // Auth Methods
+  async login(email: string, password?: string): Promise<AuthResponse> {
+    return request<AuthResponse>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+  },
+
+  async register(name: string, email: string, password?: string, role?: 'admin' | 'user'): Promise<AuthResponse> {
+    return request<AuthResponse>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password, role })
+    });
+  },
+
+  async getCurrentUser(token?: string, userId?: string): Promise<{ user: User }> {
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const params = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+    return request<{ user: User }>(`/api/auth/me${params}`, { headers });
+  },
+
+  async updateProfile(userData: Partial<User> & { id: string; password?: string }): Promise<{ user: User; message: string }> {
+    return request<{ user: User; message: string }>('/api/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(userData)
+    });
+  },
+
+  // Admin Methods
+  async getAdminStats(): Promise<AdminStats> {
+    return request<AdminStats>('/api/admin/stats');
+  },
+
+  async getAdminSettings(): Promise<SystemSettings> {
+    return request<SystemSettings>('/api/admin/settings');
+  },
+
+  async updateAdminSettings(settings: Partial<SystemSettings>): Promise<{ settings: SystemSettings; message: string }> {
+    return request<{ settings: SystemSettings; message: string }>('/api/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings)
+    });
+  },
+
+  async getAdminBrands(): Promise<(Brand & { averageScore: number; productCount: number; totalMentions: number })[]> {
+    return request<(Brand & { averageScore: number; productCount: number; totalMentions: number })[]>('/api/admin/brands');
+  },
+
+  async createAdminBrand(brandData: { name: string; slug?: string; originCountry?: string; description?: string; logoUrl?: string }): Promise<{ brand: Brand; message: string }> {
+    return request<{ brand: Brand; message: string }>('/api/admin/brands', {
+      method: 'POST',
+      body: JSON.stringify(brandData)
+    });
+  },
+
+  async updateAdminBrand(id: string, brandData: Partial<Brand>): Promise<{ brand: Brand; message: string }> {
+    return request<{ brand: Brand; message: string }>(`/api/admin/brands/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(brandData)
+    });
+  },
+
+  async deleteAdminBrand(id: string): Promise<{ success: boolean; message: string }> {
+    return request<{ success: boolean; message: string }>(`/api/admin/brands/${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+  },
+
+  async getAdminProducts(): Promise<(Product & { score?: any; reviewCount: number })[]> {
+    return request<(Product & { score?: any; reviewCount: number })[]>('/api/admin/products');
+  },
+
+  async createAdminProduct(productData: any): Promise<{ product: ProductDetailData; message: string }> {
+    return request<{ product: ProductDetailData; message: string }>('/api/admin/products', {
+      method: 'POST',
+      body: JSON.stringify(productData)
+    });
+  },
+
+  async updateAdminProduct(id: string, productData: any): Promise<{ product: ProductDetailData; message: string }> {
+    return request<{ product: ProductDetailData; message: string }>(`/api/admin/products/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(productData)
+    });
+  },
+
+  async deleteAdminProduct(id: string): Promise<{ success: boolean; message: string }> {
+    return request<{ success: boolean; message: string }>(`/api/admin/products/${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+  },
+
+  async triggerAIAnalyze(id: string): Promise<{ product: ProductDetailData; message: string }> {
+    return request<{ product: ProductDetailData; message: string }>(`/api/admin/products/${encodeURIComponent(id)}/analyze`, {
+      method: 'POST'
+    });
+  },
+
+  async testAIPrompt(promptTemplate: string, testInput: string): Promise<{ output: string; model: string; executionTimeMs: number; tokensUsed: number }> {
+    return request<{ output: string; model: string; executionTimeMs: number; tokensUsed: number }>('/api/admin/ai/test-prompt', {
+      method: 'POST',
+      body: JSON.stringify({ promptTemplate, testInput })
+    });
   }
 };
 

@@ -497,3 +497,57 @@ export interface HomeDataResponse {
     totalSources: number;
   };
 }
+
+export type UserRole = 'admin' | 'user';
+
+export interface UserPreferences {
+  emailNotifications: boolean;
+  priceDropAlerts: boolean;
+  weeklyDigest: boolean;
+  defaultCategory?: string;
+  theme?: 'light' | 'system';
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  avatarUrl?: string;
+  bio?: string;
+  createdAt: string;
+  preferences: UserPreferences;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+export interface SystemSettings {
+  siteTitle: string;
+  metaDescription: string;
+  aiModel: string;
+  autoScrapeIntervalHours: number;
+  confidenceThreshold: number;
+  maintenanceMode: boolean;
+  allowPublicReviews: boolean;
+  geminiApiKeySet: boolean;
+  customPrompts: {
+    verdictPrompt: string;
+    chronicIssuesPrompt: string;
+    valueForMoneyPrompt: string;
+  };
+}
+
+export interface AdminStats {
+  totalProducts: number;
+  totalBrands: number;
+  totalCategories: number;
+  totalReviews: number;
+  totalMentions: number;
+  aiAnalysisCount: number;
+  systemHealth: 'HEALTHY' | 'WARNING' | 'MAINTENANCE';
+  lastScrapedAt: string;
+  activeUsersCount: number;
+}

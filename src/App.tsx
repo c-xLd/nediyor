@@ -14,8 +14,12 @@ import { BrandsDirectoryPage } from './pages/BrandsDirectoryPage.js';
 import { BrandProfilePage } from './pages/BrandProfilePage.js';
 import { DataSourcesPage } from './pages/DataSourcesPage.js';
 import { WatchlistPage } from './pages/WatchlistPage.js';
+import { SettingsPage } from './pages/SettingsPage.js';
+import { AdminPage } from './pages/AdminPage.js';
 import { Button } from './components/ui/Button.js';
 import { ToastProvider } from './components/ui/Toast.js';
+import { AuthProvider } from './lib/authContext.js';
+import { AuthModal } from './components/auth/AuthModal.js';
 import { AlertCircle } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -91,7 +95,17 @@ const RouteHandler: React.FC = () => {
     return <WatchlistPage />;
   }
 
-  // Route 13: 404 Fallback
+  // Route 13: User Profile & Settings (/ayarlar or /profil)
+  if (path === '/ayarlar' || path === '/profil' || path.startsWith('/ayarlar/')) {
+    return <SettingsPage />;
+  }
+
+  // Route 14: Admin Dashboard & Control Panel (/admin)
+  if (path === '/admin' || path.startsWith('/admin/')) {
+    return <AdminPage />;
+  }
+
+  // Route 15: 404 Fallback
   return (
     <div className="min-h-[70vh] flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center p-8 rounded-3xl bg-white border border-slate-200 shadow-xl">
@@ -117,22 +131,25 @@ const RouteHandler: React.FC = () => {
 export default function App() {
   return (
     <RouterProvider>
-      <ToastProvider>
-        <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-['Plus_Jakarta_Sans'] selection:bg-indigo-500 selection:text-white bg-grid-pattern relative">
-          {/* Subtle top ambient spotlight */}
-          <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-radial-gradient pointer-events-none z-0" />
-          
-          <Navbar />
-          <main className="flex-1 relative z-10">
-            <ErrorBoundary>
-              <RouteHandler />
-            </ErrorBoundary>
-          </main>
-          <Footer />
-          <Analytics />
-          <SpeedInsights />
-        </div>
-      </ToastProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-['Plus_Jakarta_Sans'] selection:bg-indigo-500 selection:text-white bg-grid-pattern relative">
+            {/* Subtle top ambient spotlight */}
+            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-radial-gradient pointer-events-none z-0" />
+            
+            <Navbar />
+            <main className="flex-1 relative z-10">
+              <ErrorBoundary>
+                <RouteHandler />
+              </ErrorBoundary>
+            </main>
+            <Footer />
+            <AuthModal />
+            <Analytics />
+            <SpeedInsights />
+          </div>
+        </ToastProvider>
+      </AuthProvider>
     </RouterProvider>
   );
 }

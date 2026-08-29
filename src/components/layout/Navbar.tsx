@@ -22,10 +22,16 @@ import {
   ShieldCheck,
   TrendingDown,
   Building2,
-  Database
+  Database,
+  User as UserIcon,
+  Settings,
+  LayoutDashboard,
+  LogOut,
+  Sliders
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useRouter } from '../../lib/router.js';
+import { useAuth } from '../../lib/authContext.js';
 import { CommandSearchModal } from './CommandSearchModal.js';
 import { MobileBottomNav } from './MobileBottomNav.js';
 
@@ -38,9 +44,13 @@ export const Navbar: React.FC = () => {
   // Dropdown states
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const categoriesRef = useRef<HTMLDivElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const { user, isAuthenticated, isAdmin, logout, openAuthModal } = useAuth();
 
   // Global ⌘K / Ctrl+K & '/' shortcut listener
   useEffect(() => {
@@ -84,6 +94,9 @@ export const Navbar: React.FC = () => {
       }
       if (toolsRef.current && !toolsRef.current.contains(e.target as Node)) {
         setToolsOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -362,12 +375,12 @@ export const Navbar: React.FC = () => {
             </Link>
           </nav>
 
-          {/* Right Area: Search & Favorite */}
+          {/* Right Area: Search, Favorite & User Profile */}
           <div className="flex items-center gap-2 sm:gap-2.5">
             {/* Search Bar Trigger - Responsive */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="flex items-center gap-2 sm:gap-3 px-2.5 sm:pl-3 sm:pr-2.5 py-1.5 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/90 hover:border-indigo-300 text-slate-500 hover:text-slate-900 text-xs font-medium transition-all group w-auto sm:w-52 md:w-60 lg:w-72 justify-between cursor-pointer shadow-2xs hover:shadow-xs"
+              className="flex items-center gap-2 sm:gap-3 px-2.5 sm:pl-3 sm:pr-2.5 py-1.5 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/90 hover:border-indigo-300 text-slate-500 hover:text-slate-900 text-xs font-medium transition-all group w-auto sm:w-48 md:w-56 lg:w-64 justify-between cursor-pointer shadow-2xs hover:shadow-xs"
               title="Aramayı Aç (⌘K veya /)"
             >
               <div className="flex items-center gap-2 truncate">
@@ -400,6 +413,105 @@ export const Navbar: React.FC = () => {
               )}
             </Link>
 
+            {/* User Profile / Auth Button Dropdown (Desktop) */}
+            <div className="relative hidden sm:block" ref={userMenuRef}>
+              {user ? (
+                <div>
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 bg-slate-50 hover:bg-white transition-all cursor-pointer shadow-2xs"
+                  >
+                    <img
+                      src={user.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`}
+                      alt={user.name}
+                      className="w-6 h-6 rounded-lg object-cover border border-slate-200 bg-white"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`;
+                      }}
+                    />
+                    <span className="text-xs font-bold text-slate-800 max-w-[90px] truncate">
+                      {user.name.split(' ')[0]}
+                    </span>
+                    {isAdmin && (
+                      <span className="p-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-black uppercase">
+                        Admin
+                      </span>
+                    )}
+                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${userMenuOpen ? 'rotate-180 text-indigo-600' : ''}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {userMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-full mt-1.5 w-60 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 z-50 space-y-1"
+                      >
+                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 mb-1">
+                          <div className="text-xs font-bold text-slate-900 truncate">{user.name}</div>
+                          <div className="text-[11px] text-slate-500 truncate">{user.email}</div>
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <span className={`inline-block w-2 h-2 rounded-full ${isAdmin ? 'bg-amber-500' : 'bg-indigo-500'}`} />
+                            <span className="text-[10px] font-bold text-slate-600 uppercase">
+                              {isAdmin ? 'Yönetici (Admin)' : 'Standart Üye'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {isAdmin && (
+                          <Link
+                            href="/admin"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-50/70 text-amber-900 hover:bg-amber-100/80 transition-colors border border-amber-200/60"
+                          >
+                            <LayoutDashboard className="w-4 h-4 text-amber-600" />
+                            <span>Admin Paneli</span>
+                          </Link>
+                        )}
+
+                        <Link
+                          href="/ayarlar"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
+                        >
+                          <Settings className="w-4 h-4 text-slate-400" />
+                          <span>Profil & Ayarlar</span>
+                        </Link>
+
+                        <button
+                          onClick={() => {
+                            setUserMenuOpen(false);
+                            logout();
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors text-left"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Çıkış Yap</span>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => openAuthModal('login')}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-100 transition-colors"
+                  >
+                    Giriş Yap
+                  </button>
+                  <button
+                    onClick={() => openAuthModal('register')}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors"
+                  >
+                    Kayıt Ol
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -421,6 +533,63 @@ export const Navbar: React.FC = () => {
               transition={{ duration: 0.2 }}
               className="lg:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-4 overflow-hidden shadow-lg"
             >
+              {/* Mobile User Profile Section */}
+              {user ? (
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={user.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`}
+                      alt={user.name}
+                      className="w-10 h-10 rounded-xl object-cover border border-slate-200"
+                    />
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">{user.name}</div>
+                      <div className="text-[10px] text-slate-500">{isAdmin ? '👑 Platform Yöneticisi' : '👤 Üye'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-2 rounded-xl bg-amber-500 text-white"
+                        title="Admin Paneli"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                      </Link>
+                    )}
+                    <Link
+                      href="/ayarlar"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="p-2 rounded-xl bg-slate-200 text-slate-700"
+                      title="Ayarlar"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      openAuthModal('login');
+                    }}
+                    className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800"
+                  >
+                    Giriş Yap
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      openAuthModal('register');
+                    }}
+                    className="p-2.5 rounded-xl bg-indigo-600 text-xs font-bold text-white shadow-xs"
+                  >
+                    Kayıt Ol
+                  </button>
+                </div>
+              )}
               {/* Quick Search Trigger in Drawer */}
               <button
                 type="button"
