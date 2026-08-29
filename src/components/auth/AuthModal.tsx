@@ -17,6 +17,7 @@ import {
 import { useAuth } from '../../lib/authContext.js';
 import { Button } from '../ui/Button.js';
 import { useToast } from '../ui/Toast.js';
+import { SocialAuthButtons } from './SocialAuthButtons.js';
 
 export const AuthModal: React.FC = () => {
   const { isAuthModalOpen, closeAuthModal, authModalTab, openAuthModal, login, register, quickLogin, isLoading } = useAuth();
@@ -171,7 +172,30 @@ export const AuthModal: React.FC = () => {
         </div>
 
         {/* Content Body */}
-        <div className="p-6">
+        <div className="p-6 space-y-4">
+          {/* Social Auth Providers (Google, Apple, ChatGPT, Facebook, Instagram) */}
+          <div>
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <span>Sosyal Hesap ile {authModalTab === 'login' ? 'Giriş' : 'Kayıt'}</span>
+              <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md">
+                5 Sağlayıcı Aktif
+              </span>
+            </div>
+            <SocialAuthButtons 
+              mode={authModalTab}
+              onSuccess={closeAuthModal} 
+            />
+          </div>
+
+          <div className="relative flex items-center justify-center my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
+            </div>
+            <div className="relative bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              veya e-posta ile
+            </div>
+          </div>
+
           {authModalTab === 'login' ? (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>

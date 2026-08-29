@@ -391,6 +391,77 @@ async function startServer() {
     }
   });
 
+  // Social Auth Login & Registration (Google, Apple, ChatGPT/OpenAI, Facebook, Instagram)
+  app.post('/api/auth/social-login', (req, res) => {
+    try {
+      const { provider, name, email, avatarUrl, providerId } = req.body;
+      if (!provider || !['google', 'facebook', 'instagram', 'apple', 'chatgpt'].includes(provider)) {
+        return res.status(400).json({ error: 'Geçersiz veya desteklenmeyen sosyal giriş sağlayıcısı.' });
+      }
+
+      const result = db.socialLogin({ provider, name, email, avatarUrl, providerId });
+      res.status(200).json(result);
+    } catch (err: any) {
+      console.error('[API] /api/auth/social-login error:', err);
+      res.status(500).json({ error: 'Sosyal giriş işlemi sırasında hata oluştu.' });
+    }
+  });
+
+  // Toggle Social Provider (Link / Unlink)
+  app.post('/api/auth/social-toggle', (req, res) => {
+    try {
+      const { userId, provider, action } = req.body;
+      if (!userId || !provider || !['connect', 'disconnect'].includes(action)) {
+        return res.status(400).json({ error: 'Geçersiz parametreler.' });
+      }
+
+      const updated = db.toggleSocialProvider(userId, provider, action);
+      if (!updated) {
+        return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
+      }
+
+      res.json({ user: updated, message: `Sağlayıcı başarıyla ${action === 'connect' ? 'bağlandı' : 'ayrıldı'}.` });
+    } catch (err: any) {
+      console.error('[API] /api/auth/social-toggle error:', err);
+      res.status(500).json({ error: 'Hesap bağlantısı güncellenemedi.' });
+    }
+  });
+
+  // OAuth Callback Route (Supporting Popup Window & postMessage flow)
+  app.get(['/auth/callback', '/auth/callback/'], (req, res) => {
+    const provider = req.query.provider || 'social';
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>NeDiyor - Doğrulama Tamamlandı</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc; color: #0f172a; }
+            .card { background: white; padding: 32px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; max-width: 380px; border: 1px solid #e2e8f0; }
+            .icon { width: 48px; height: 48px; margin: 0 auto 16px; border-radius: 12px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+            h2 { margin: 0 0 8px; font-size: 18px; }
+            p { margin: 0; color: #64748b; font-size: 13px; line-height: 1.5; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="icon">✓</div>
+            <h2>Kimlik Doğrulandı</h2>
+            <p>Sosyal hesap bağlantınız başarıyla tamamlandı. Bu pencere otomatik olarak kapanacaktır.</p>
+          </div>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({ type: 'OAUTH_AUTH_SUCCESS', provider: '${provider}' }, '*');
+              setTimeout(() => { window.close(); }, 800);
+            } else {
+              setTimeout(() => { window.location.href = '/'; }, 1000);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+  });
+
   // Get Current User (Me)
   app.get('/api/auth/me', (req, res) => {
     try {

@@ -16,7 +16,8 @@ import {
   User,
   AuthResponse,
   SystemSettings,
-  AdminStats
+  AdminStats,
+  SocialAuthProvider
 } from '../types/index.js';
 
 export class ApiError extends Error {
@@ -280,6 +281,26 @@ export const api = {
     return request<AuthResponse>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ name, email, password, role })
+    });
+  },
+
+  async socialLogin(data: {
+    provider: SocialAuthProvider;
+    name?: string;
+    email?: string;
+    avatarUrl?: string;
+    providerId?: string;
+  }): Promise<AuthResponse> {
+    return request<AuthResponse>('/api/auth/social-login', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  async toggleSocialProvider(userId: string, provider: SocialAuthProvider, action: 'connect' | 'disconnect'): Promise<{ user: User; message: string }> {
+    return request<{ user: User; message: string }>('/api/auth/social-toggle', {
+      method: 'POST',
+      body: JSON.stringify({ userId, provider, action })
     });
   },
 

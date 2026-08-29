@@ -29,7 +29,8 @@ import {
   User,
   SystemSettings,
   AdminStats,
-  VerdictType
+  VerdictType,
+  SocialAuthProvider
 } from '../../src/types/index.js';
 import { calculateVerdict, calculateConfidence } from '../../src/lib/scoring.js';
 import { initialSeedData } from './seedData.js';
@@ -1227,6 +1228,152 @@ class NeDiyorDatabase {
     const user = this.data.users.find(u => u.id === id);
     if (!user) return null;
     const { passwordHash, ...safeUser } = user;
+    return safeUser;
+  }
+
+  public socialLogin(input: {
+    provider: SocialAuthProvider;
+    name?: string;
+    email?: string;
+    avatarUrl?: string;
+    providerId?: string;
+  }): { user: User; token: string; isNewUser: boolean; message: string } {
+    const provider = input.provider;
+    
+    // Determine provider-specific mock/default details if not fully supplied
+    let email = input.email ? input.email.trim().toLowerCase() : '';
+    let name = input.name ? input.name.trim() : '';
+    let avatarUrl = input.avatarUrl;
+
+    if (!email) {
+      if (provider === 'google') {
+        email = 'ahmet.as060@gmail.com';
+        name = name || 'Ahmet Aslan';
+        avatarUrl = avatarUrl || 'https://lh3.googleusercontent.com/a/default-user=s96-c';
+      } else if (provider === 'apple') {
+        email = 'ahmet.aslan@privaterelay.appleid.com';
+        name = name || 'Ahmet Aslan (Apple)';
+        avatarUrl = avatarUrl || 'https://api.dicebear.com/7.x/shapes/svg?seed=apple_ahmet';
+      } else if (provider === 'chatgpt') {
+        email = 'ahmet.openai@chatgpt.account';
+        name = name || 'Ahmet Aslan (ChatGPT AI)';
+        avatarUrl = avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=OpenAIChatGPT';
+      } else if (provider === 'facebook') {
+        email = 'ahmet.aslan@facebook.user';
+        name = name || 'Ahmet Aslan (Meta)';
+        avatarUrl = avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=facebook_ahmet';
+      } else if (provider === 'instagram') {
+        email = 'ahmet.aslan@instagram.user';
+        name = name || 'ahmet_aslan';
+        avatarUrl = avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=instagram_ahmet';
+      }
+    }
+
+    if (!name) {
+      name = email.split('@')[0].replace(/[._-]/g, ' ').toUpperCase();
+    }
+
+    if (!avatarUrl) {
+      avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
+    }
+
+    // Check if user exists by email or providerId
+    const existingIndex = this.data.users.findIndex(u => 
+      u.email.toLowerCase() === email.toLowerCase() || 
+      (input.providerId && u.providerId === input.providerId)
+    );
+
+    let isNewUser = false;
+    let targetUser: User & { passwordHash?: string };
+
+    if (existingIndex !== -1) {
+      // Existing user: Link provider if not present
+      const current = this.data.users[existingIndex];
+      const connected = current.connectedProviders || [current.authProvider || 'email'];
+      if (!connected.includes(provider)) {
+        connected.push(provider);
+      }
+
+      targetUser = {
+        ...current,
+        connectedProviders: connected,
+        avatarUrl: current.avatarUrl || avatarUrl
+      };
+      this.data.users[existingIndex] = targetUser;
+    } else {
+      // Create new user via social auth
+      isNewUser = true;
+      const isFirstOrAdmin = this.data.users.length === 0 || email.includes('admin') || email === 'ahmet.as060@gmail.com';
+      targetUser = {
+        id: `usr-${provider}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        name,
+        email,
+        role: isFirstOrAdmin ? 'admin' : 'user',
+        avatarUrl,
+        authProvider: provider,
+        connectedProviders: [provider],
+        providerId: input.providerId || `pid_${provider}_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        passwordHash: 'social_login_managed',
+        preferences: {
+          emailNotifications: true,
+          priceDropAlerts: true,
+          weeklyDigest: true,
+          theme: 'light'
+        }
+      };
+      this.data.users.push(targetUser);
+    }
+
+    this.saveData(this.data);
+
+    const token = `nediyor_tk_${targetUser.id}_${Date.now()}`;
+    const { passwordHash, ...safeUser } = targetUser;
+
+    const providerLabels: Record<SocialAuthProvider, string> = {
+      google: 'Google',
+      facebook: 'Facebook',
+      instagram: 'Instagram',
+      apple: 'Apple',
+      chatgpt: 'ChatGPT (OpenAI)'
+    };
+
+    return {
+      user: safeUser,
+      token,
+      isNewUser,
+      message: `${providerLabels[provider]} hesabı ile ${isNewUser ? 'kaydınız tamamlandı' : 'giriş yapıldı'}!`
+    };
+  }
+
+  public toggleSocialProvider(userId: string, provider: SocialAuthProvider, action: 'connect' | 'disconnect'): User | null {
+    const idx = this.data.users.findIndex(u => u.id === userId);
+    if (idx === -1) return null;
+
+    const current = this.data.users[idx];
+    let connected = current.connectedProviders ? [...current.connectedProviders] : [current.authProvider || 'email'];
+
+    if (action === 'connect') {
+      if (!connected.includes(provider)) {
+        connected.push(provider);
+      }
+    } else {
+      connected = connected.filter(p => p !== provider);
+      // Ensure at least one provider or email
+      if (connected.length === 0) {
+        connected = ['email'];
+      }
+    }
+
+    const updatedUser = {
+      ...current,
+      connectedProviders: connected
+    };
+
+    this.data.users[idx] = updatedUser;
+    this.saveData(this.data);
+
+    const { passwordHash, ...safeUser } = updatedUser;
     return safeUser;
   }
 

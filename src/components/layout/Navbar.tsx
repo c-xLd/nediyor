@@ -377,22 +377,14 @@ export const Navbar: React.FC = () => {
 
           {/* Right Area: Search, Favorite & User Profile */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Search Bar Trigger - Responsive */}
+            {/* Search Icon Button Trigger */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="flex items-center gap-2 sm:gap-3 px-2.5 sm:pl-3 sm:pr-2.5 py-1.5 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/90 hover:border-indigo-300 text-slate-500 hover:text-slate-900 text-xs font-medium transition-all group w-auto sm:w-48 md:w-56 lg:w-64 justify-between cursor-pointer shadow-2xs hover:shadow-xs"
-              title="Aramayı Aç (⌘K veya /)"
+              className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/80 border border-slate-200/80 hover:border-indigo-200 transition-all cursor-pointer shadow-2xs hover:shadow-xs group relative shrink-0"
+              title="Arama Yap (⌘K veya /)"
+              aria-label="Arama Yap"
             >
-              <div className="flex items-center gap-2 truncate">
-                <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors shrink-0" />
-                <span className="truncate hidden xs:inline">Ürün, marka veya model ara...</span>
-                <span className="xs:hidden font-semibold text-slate-700">Ara</span>
-              </div>
-              <div className="hidden sm:flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] text-slate-400 group-hover:text-slate-700 font-mono shadow-2xs">
-                  ⌘K
-                </kbd>
-              </div>
+              <Search className="w-4 h-4 transition-transform group-hover:scale-110 text-slate-600 group-hover:text-indigo-600" />
             </button>
 
             {/* Favorite / Watchlist Indicator */}

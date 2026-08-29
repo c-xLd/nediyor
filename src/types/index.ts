@@ -500,6 +500,9 @@ export interface HomeDataResponse {
 
 export type UserRole = 'admin' | 'user';
 
+export type SocialAuthProvider = 'google' | 'facebook' | 'instagram' | 'apple' | 'chatgpt';
+export type AuthProvider = SocialAuthProvider | 'email';
+
 export interface UserPreferences {
   emailNotifications: boolean;
   priceDropAlerts: boolean;
@@ -515,13 +518,25 @@ export interface User {
   role: UserRole;
   avatarUrl?: string;
   bio?: string;
+  authProvider?: AuthProvider;
+  connectedProviders?: AuthProvider[];
+  providerId?: string;
   createdAt: string;
   preferences: UserPreferences;
+}
+
+export interface SocialLoginRequest {
+  provider: SocialAuthProvider;
+  name?: string;
+  email?: string;
+  avatarUrl?: string;
+  providerId?: string;
 }
 
 export interface AuthResponse {
   user: User;
   token: string;
+  message?: string;
 }
 
 export interface SystemSettings {

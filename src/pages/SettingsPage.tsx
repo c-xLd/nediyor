@@ -13,26 +13,34 @@ import {
   Sparkles,
   Smartphone,
   CheckCircle2,
-  LogOut
+  LogOut,
+  Share2,
+  Globe,
+  Plus,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '../lib/authContext.js';
 import { useRouter } from '../lib/router.js';
 import { Button } from '../components/ui/Button.js';
 import { Badge } from '../components/ui/Badge.js';
 import { useToast } from '../components/ui/Toast.js';
+import { SocialAuthProvider } from '../types/index.js';
+import { GoogleIcon, AppleIcon, ChatGPTIcon, FacebookIcon, InstagramIcon } from '../components/auth/SocialIcons.js';
 
 export const SettingsPage: React.FC = () => {
-  const { user, updateProfile, logout, isAdmin, openAuthModal } = useAuth();
+  const { user, updateProfile, logout, isAdmin, openAuthModal, toggleSocialProvider, socialLogin } = useAuth();
   const { navigate } = useRouter();
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'security' | 'social'>('profile');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   
   // Notification states
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -242,6 +250,24 @@ export const SettingsPage: React.FC = () => {
 
               <button
                 type="button"
+                onClick={() => setActiveTab('social')}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-colors text-left ${
+                  activeTab === 'social'
+                    ? 'bg-indigo-50 text-indigo-700'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Share2 className="w-4 h-4" />
+                  <span>Sosyal Giriş & Hesaplar</span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                  {user.connectedProviders?.length || 1} Bağlı
+                </span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => {
                   logout();
                   showToast('Oturum kapatıldı.', 'info');
@@ -432,6 +458,158 @@ export const SettingsPage: React.FC = () => {
                         className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
                       />
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'social' && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 font-['Space_Grotesk'] mb-1">
+                      Sosyal Giriş & Bağlı Hesaplar
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Google, Apple, ChatGPT, Facebook ve Instagram hesaplarınızı bağlayarak şifresiz, tek tıkla giriş yapabilirsiniz.
+                    </p>
+                  </div>
+
+                  {/* Connected Accounts List */}
+                  <div className="space-y-3">
+                    {[
+                      {
+                        id: 'google' as SocialAuthProvider,
+                        name: 'Google Hesabı',
+                        desc: 'Google Workspace ve Gmail ile senkronize oturum açma',
+                        icon: <GoogleIcon className="w-5 h-5" />,
+                        email: user.authProvider === 'google' ? user.email : 'ahmet.as060@gmail.com',
+                        bg: 'bg-blue-50/40 border-blue-100'
+                      },
+                      {
+                        id: 'apple' as SocialAuthProvider,
+                        name: 'Apple Kimliği',
+                        desc: 'Gizlilik korumalı Apple Private Relay oturumu',
+                        icon: <AppleIcon className="w-5 h-5 text-slate-900" />,
+                        email: user.authProvider === 'apple' ? user.email : 'ahmet.aslan@privaterelay.appleid.com',
+                        bg: 'bg-neutral-50 border-neutral-200'
+                      },
+                      {
+                        id: 'chatgpt' as SocialAuthProvider,
+                        name: 'ChatGPT / OpenAI',
+                        desc: 'OpenAI tüketici profili ve kişiselleştirilmiş AI analitiği',
+                        icon: <ChatGPTIcon className="w-5 h-5 text-emerald-600" />,
+                        email: user.authProvider === 'chatgpt' ? user.email : 'ahmet.openai@chatgpt.account',
+                        bg: 'bg-emerald-50/40 border-emerald-100'
+                      },
+                      {
+                        id: 'facebook' as SocialAuthProvider,
+                        name: 'Facebook (Meta)',
+                        desc: 'Meta sosyal grafiği ve doğrulanmış kimlik',
+                        icon: <FacebookIcon className="w-5 h-5 text-[#1877F2]" />,
+                        email: user.authProvider === 'facebook' ? user.email : 'ahmet.aslan@facebook.user',
+                        bg: 'bg-blue-50/30 border-blue-100'
+                      },
+                      {
+                        id: 'instagram' as SocialAuthProvider,
+                        name: 'Instagram',
+                        desc: 'Instagram içerik ve ürün topluluk entegrasyonu',
+                        icon: (
+                          <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white shrink-0 shadow-2xs">
+                            <InstagramIcon className="w-4 h-4 text-white" />
+                          </div>
+                        ),
+                        email: user.authProvider === 'instagram' ? user.email : 'ahmet.aslan@instagram.user',
+                        bg: 'bg-pink-50/30 border-pink-100'
+                      }
+                    ].map((provider) => {
+                      const isConnected = user.connectedProviders?.includes(provider.id) || user.authProvider === provider.id;
+                      const isPrimary = user.authProvider === provider.id;
+                      const isLoadingThis = socialLoading === provider.id;
+
+                      const handleToggle = async () => {
+                        try {
+                          setSocialLoading(provider.id);
+                          if (isConnected) {
+                            if (isPrimary && (!user.connectedProviders || user.connectedProviders.length <= 1)) {
+                              showToast('Ana giriş sağlayıcınızın bağlantısını kesemezsiniz. Önce başka bir hesap bağlayınız.', 'error');
+                              return;
+                            }
+                            await toggleSocialProvider(provider.id, 'disconnect');
+                            showToast(`${provider.name} bağlantısı kaldırıldı.`, 'info');
+                          } else {
+                            await toggleSocialProvider(provider.id, 'connect');
+                            showToast(`${provider.name} başarıyla bağlandı!`, 'success');
+                          }
+                        } catch (err: any) {
+                          showToast(err.message || 'İşlem gerçekleştirilemedi.', 'error');
+                        } finally {
+                          setSocialLoading(null);
+                        }
+                      };
+
+                      return (
+                        <div
+                          key={provider.id}
+                          className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs"
+                        >
+                          <div className="flex items-start gap-3.5">
+                            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
+                              {provider.icon}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-slate-900">
+                                  {provider.name}
+                                </span>
+                                {isConnected ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                                    <CheckCircle2 className="w-3 h-3" />
+                                    {isPrimary ? 'Ana Giriş' : 'Bağlı'}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-semibold text-slate-400">
+                                    Bağlı Değil
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-500 mt-0.5">
+                                {isConnected ? (
+                                  <span className="text-slate-700 font-medium">{provider.email}</span>
+                                ) : (
+                                  provider.desc
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-end sm:self-auto">
+                            <button
+                              type="button"
+                              disabled={isLoadingThis}
+                              onClick={handleToggle}
+                              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                isConnected
+                                  ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                                  : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-2xs'
+                              }`}
+                            >
+                              {isLoadingThis ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : isConnected ? (
+                                <>
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>Bağlantıyı Kes</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="w-3.5 h-3.5" />
+                                  <span>Şimdi Bağla</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

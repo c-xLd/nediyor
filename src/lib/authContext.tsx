@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole } from '../types/index.js';
+import { User, UserRole, SocialAuthProvider } from '../types/index.js';
 import { api } from './api.js';
 
 interface AuthContextType {
@@ -10,6 +10,8 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password?: string) => Promise<boolean>;
   register: (name: string, email: string, password?: string, role?: UserRole) => Promise<boolean>;
+  socialLogin: (provider: SocialAuthProvider, customProfile?: { name?: string; email?: string; avatarUrl?: string }) => Promise<boolean>;
+  toggleSocialProvider: (provider: SocialAuthProvider, action: 'connect' | 'disconnect') => Promise<boolean>;
   quickLogin: (role: 'admin' | 'user') => Promise<boolean>;
   logout: () => void;
   updateProfile: (data: Partial<User> & { password?: string }) => Promise<boolean>;
@@ -120,6 +122,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const socialLogin = async (
+    provider: SocialAuthProvider, 
+    customProfile?: { name?: string; email?: string; avatarUrl?: string }
+  ): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      const res = await api.socialLogin({
+        provider,
+        ...(customProfile || {})
+      });
+      if (res && res.user) {
+        setUser(res.user);
+        setToken(res.token);
+        localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+        localStorage.setItem(TOKEN_KEY, res.token);
+        setIsAuthModalOpen(false);
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleSocialProvider = async (provider: SocialAuthProvider, action: 'connect' | 'disconnect'): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      setIsLoading(true);
+      const res = await api.toggleSocialProvider(user.id, provider, action);
+      if (res && res.user) {
+        setUser(res.user);
+        localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const quickLogin = async (role: 'admin' | 'user'): Promise<boolean> => {
     if (role === 'admin') {
       return login('ahmet.as060@gmail.com', '123456');
@@ -172,6 +218,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         register,
+        socialLogin,
+        toggleSocialProvider,
         quickLogin,
         logout,
         updateProfile,
