@@ -4,7 +4,7 @@ import { Button } from './Button.js';
 
 export interface ErrorStateProps {
   title?: string;
-  message?: string;
+  message?: unknown;
   onRetry?: () => void;
   className?: string;
 }
@@ -15,6 +15,19 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   onRetry,
   className = ''
 }) => {
+  let displayMessage: React.ReactNode = 'Veriler yüklenirken geçici bir sorun meydana geldi. Lütfen tekrar deneyin.';
+
+  if (typeof message === 'string') {
+    displayMessage = message === '[object Object]' ? 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.' : message;
+  } else if (message instanceof Error) {
+    displayMessage = message.message || 'Beklenmeyen bir hata oluştu.';
+  } else if (React.isValidElement(message)) {
+    displayMessage = message;
+  } else if (message && typeof message === 'object') {
+    const obj = message as Record<string, any>;
+    displayMessage = obj.message || obj.error || 'Beklenmeyen bir hata oluştu.';
+  }
+
   return (
     <div
       className={`flex flex-col items-center justify-center text-center p-8 md:p-12 rounded-2xl bg-rose-50/70 border border-rose-200 my-4 shadow-sm ${className}`}
@@ -24,7 +37,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
       </div>
       <h3 className="text-lg font-semibold text-rose-900 mb-1.5">{title}</h3>
       <p className="text-sm text-rose-700/80 max-w-md mb-6 leading-relaxed">
-        {message}
+        {displayMessage}
       </p>
       {onRetry && (
         <Button

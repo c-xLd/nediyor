@@ -395,11 +395,19 @@ export const ComparePage: React.FC = () => {
                       </div>
                     </div>
                     <Badge
-                      variant={product.verdictInfo.variant}
+                      variant={
+                        product.verdictInfo?.variant === 'positive' 
+                          ? 'emerald' 
+                          : product.verdictInfo?.variant === 'negative' 
+                          ? 'rose' 
+                          : product.verdictInfo?.variant === 'warning' 
+                          ? 'amber' 
+                          : 'slate'
+                      }
                       size="md"
                       className="font-bold text-xs"
                     >
-                      {product.verdictInfo.label}
+                      {product.verdictInfo?.label || 'Değerlendirilmedi'}
                     </Badge>
                   </div>
 

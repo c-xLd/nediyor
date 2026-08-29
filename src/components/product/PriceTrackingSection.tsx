@@ -346,7 +346,7 @@ export const PriceTrackingSection: React.FC<PriceTrackingSectionProps> = ({
         isOpen={isAlertModalOpen}
         onClose={() => setIsAlertModalOpen(false)}
         productName={productName}
-        priceInfo={priceInfo}
+        currentPrice={priceInfo.currentPrice}
       />
     </div>
   );

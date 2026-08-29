@@ -36,9 +36,9 @@ export const ChronicIssuesAndWarrantySection: React.FC<ChronicIssuesAndWarrantyS
   const getSeverityBadge = (sev: ChronicIssue['severity']) => {
     switch (sev) {
       case 'high':
-        return <Badge variant="negative" size="sm">Kritik Risk</Badge>;
+        return <Badge variant="rose" size="sm">Kritik Risk</Badge>;
       case 'medium':
-        return <Badge variant="warning" size="sm">Orta Risk / Dikkat</Badge>;
+        return <Badge variant="amber" size="sm">Orta Risk / Dikkat</Badge>;
       case 'low':
       default:
         return <Badge variant="neutral" size="sm">Hafif / İzole</Badge>;

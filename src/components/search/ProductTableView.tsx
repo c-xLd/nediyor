@@ -52,7 +52,7 @@ export const ProductTableView: React.FC<ProductTableViewProps> = ({
                   text: 'Alınır',
                   bg: 'bg-emerald-50 text-emerald-800 border-emerald-200'
                 };
-              } else if (verdict === 'ALTERNATIFLERE_BAK' || verdict === 'ALTERNATIFE_BAK') {
+              } else if (verdict === 'ALTERNATIFLERE_BAK') {
                 verdictBadge = {
                   text: 'Alternatif Ara',
                   bg: 'bg-rose-50 text-rose-800 border-rose-200'

@@ -14,7 +14,7 @@ import {
   DealsResponse
 } from '../types/index.js';
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
     super(message);
@@ -24,21 +24,34 @@ class ApiError extends Error {
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      ...(options?.headers || {})
-    }
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        ...(options?.headers || {})
+      }
+    });
+  } catch (err: any) {
+    throw new ApiError(err?.message || 'Ağ bağlantısı kurulamadı. Lütfen internetinizi kontrol edin.', 0);
+  }
 
   if (!res.ok) {
-    let errorMsg = 'Sunucu isteği başarısız oldu.';
+    let errorMsg = 'Sunucu isteği başarısız oldu. Lütfen tekrar deneyin.';
     try {
       const data = await res.json();
-      if (data && data.error) {
-        errorMsg = data.error;
+      if (data) {
+        if (typeof data.error === 'string') {
+          errorMsg = data.error;
+        } else if (typeof data.message === 'string') {
+          errorMsg = data.message;
+        } else if (data.error && typeof data.error === 'object') {
+          errorMsg = data.error.message || data.error.msg || JSON.stringify(data.error);
+        } else if (typeof data === 'string') {
+          errorMsg = data;
+        }
       }
     } catch {
       // fallback to generic

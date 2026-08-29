@@ -118,7 +118,7 @@ export const WatchlistPage: React.FC = () => {
         return prev.filter(id => id !== productId);
       } else {
         if (prev.length >= 4) {
-          showToast('En fazla 4 ürünü aynı anda karşılaştırabilirsiniz.', 'warning');
+          showToast('En fazla 4 ürünü aynı anda karşılaştırabilirsiniz.', 'info');
           return prev;
         }
         return [...prev, productId];

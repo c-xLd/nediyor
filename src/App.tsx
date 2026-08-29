@@ -17,6 +17,9 @@ import { WatchlistPage } from './pages/WatchlistPage.js';
 import { Button } from './components/ui/Button.js';
 import { ToastProvider } from './components/ui/Toast.js';
 import { AlertCircle } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+import { ErrorBoundary } from './components/ErrorBoundary.js';
 
 const RouteHandler: React.FC = () => {
   const { path, navigate } = useRouter();
@@ -121,9 +124,13 @@ export default function App() {
           
           <Navbar />
           <main className="flex-1 relative z-10">
-            <RouteHandler />
+            <ErrorBoundary>
+              <RouteHandler />
+            </ErrorBoundary>
           </main>
           <Footer />
+          <Analytics />
+          <SpeedInsights />
         </div>
       </ToastProvider>
     </RouterProvider>

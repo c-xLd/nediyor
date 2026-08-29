@@ -68,7 +68,7 @@ export const ConsensusQA: React.FC<ConsensusQAProps> = ({ product }) => {
   const handleAsk = async (qText?: string) => {
     const query = (qText || question).trim();
     if (!query) {
-      showToast('Lütfen sormak istediğiniz soruyu yazın veya hızlı sorulardan seçin.', 'warning');
+      showToast('Lütfen sormak istediğiniz soruyu yazın veya hızlı sorulardan seçin.', 'info');
       return;
     }
 
