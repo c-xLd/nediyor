@@ -1,0 +1,7 @@
+{
+  "name": "NeDiyor",
+  "description": "Binlerce gerçek kullanıcı görüşünü ve incelemesini yapay zeka ile analiz eden akıllı ürün karar platformu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
