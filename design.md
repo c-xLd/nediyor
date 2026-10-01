@@ -708,3 +708,687 @@ I know what to do.
 NeDiyor is not a review website inside a mobile wrapper.
 
 **It is a mobile decision engine powered by collective consumer evidence and AI synthesis.**
+
+# 44. APP-WIDE UI/UX SPECIFICATION — EVERY SCREEN
+
+This section is mandatory for mobile implementation. Every route must have a defined purpose, hierarchy, interactions, loading behavior, empty state, error behavior, accessibility behavior and success state.
+
+## 44. Global screen anatomy
+
+Every standard screen follows:
+1. Safe-area aware header
+2. Screen title or contextual product identity
+3. Primary content
+4. Secondary content
+5. Primary action when applicable
+6. Bottom navigation on root sections
+7. Loading / error / empty state
+8. Analytics events
+
+Use only three header patterns:
+- Root: NeDiyor + notification
+- Navigation: back + concise title
+- Product: back + save + overflow
+
+Do not put the app name in every screen title. The title identifies the current content.
+
+Apple's current guidance distinguishes tab bars for top-level navigation from toolbars for contextual actions. citeturn0search0turn0search1
+
+## 45. Screen state contract
+
+Every applicable screen must implement:
+- Initial
+- Loading
+- Loaded
+- Empty
+- Partial data
+- Error
+- Offline
+- Refreshing
+- Action pending
+- Action success
+- Action failure
+
+No screen is complete until its applicable states are designed.
+
+## 46. Splash / app launch
+
+Minimal brand recognition only:
+NeDiyor / Binlerce görüş. Tek net cevap.
+
+During launch:
+- restore auth
+- restore cached navigation
+- warm critical cache
+- route immediately
+
+No artificial splash delay.
+
+## 47. First-run onboarding
+
+Maximum three screens:
+1. Binlerce görüş.
+2. Tek net cevap.
+3. Karşılaştır, takip et, daha bilinçli karar ver.
+
+CTA: Keşfetmeye başla
+Secondary: Atla
+
+Never require login during onboarding.
+
+## 48. Home
+
+Objective: start a decision in under five seconds.
+
+Order:
+1. Header
+2. Natural-language search
+3. Quick decision tools
+4. Trending products
+5. Deals
+6. Categories
+7. Recent consensus
+8. Personalization only when sufficient data exists
+
+Above fold:
+Search + one quick decision action.
+
+Support pull-to-refresh.
+
+## 49. Explore / Keşfet
+
+Combine:
+- natural-language search
+- recent/popular searches
+- categories
+- trending products
+- brands
+- popular questions
+
+Category cards must remain visually simple.
+
+## 50. Category landing
+
+Header: back + category.
+
+Hero:
+- category title
+- one-sentence description
+
+Controls:
+- Filter
+- Sort
+
+Sections:
+1. Top rated
+2. Best value
+3. Most discussed
+4. Trending
+5. Deals
+6. Full product list
+
+Do not create a 15-item horizontal tab bar. Apple recommends keeping tab choices understandable and avoiding excessive tabs. citeturn0search2
+
+## 51. Search — full screen
+
+Initial state:
+- search field
+- recent searches
+- popular queries
+
+Typing state:
+- products
+- brands
+- categories
+- questions
+
+Decision-like natural-language queries may expose an 'AI ile bul' action.
+
+## 52. Search results
+
+Header:
+back + query.
+
+Controls:
+- Filter
+- Sort
+
+Use one-column product cards by default.
+
+Empty state:
+Sonuç bulamadık.
+Arama şeklini değiştirmeyi deneyebilirsin.
+CTA: Benzerlerini ara
+
+## 53. Search filter sheet
+
+Use a bottom sheet.
+
+Sections:
+- category
+- brand
+- price
+- minimum score
+- decision
+- features
+- deals
+
+Pinned footer:
+Sonuçları göster
+
+## 54. Product detail — complete screen
+
+This is the highest-priority screen.
+
+Order:
+1. Contextual header
+2. Product gallery
+3. Product identity
+4. Decision Hero
+5. Confidence/evidence
+6. AI summary
+7. Strengths
+8. Weaknesses
+9. Topic analysis
+10. Price
+11. Community
+12. Sources
+13. Alternatives
+14. Warranty/reliability when data exists
+15. Related questions
+
+Sticky bottom actions when appropriate:
+- Takibe al
+- Bu ürün hakkında sor
+
+Do not cover system gestures or the tab bar.
+
+## 55. Product image viewer
+
+Full-screen image viewer:
+- close
+- zoom
+- share
+- image count
+
+Gestures:
+- pinch zoom
+- horizontal swipe
+- double-tap zoom
+
+Provide accessible button alternatives.
+
+## 56. Product more menu
+
+Only contextual actions:
+- Paylaş
+- Karşılaştırmaya ekle
+- Fiyat alarmı
+- Kaydet
+- Kaynağı bildir
+
+Keep menus short and consistent. citeturn0search9
+
+## 57. AI summary / evidence screen
+
+'Neden böyle?' opens:
+- conclusion
+- positive evidence
+- negative evidence
+- source count
+- confidence
+- source explorer CTA
+
+Clearly distinguish AI synthesis from original evidence.
+
+## 58. AI question screen
+
+Full-screen task flow:
+- input
+- suggested questions
+- answer
+
+Response order:
+Kısa cevap → Kanıt → Detay → Kaynaklar
+
+Do not turn the product experience into a generic chatbot transcript.
+
+## 59. AI question history
+
+Group by date. Show question + product. Tap restores the answer context. Allow deletion.
+
+## 60. Topic detail
+
+For Camera, Battery, Performance etc:
+- topic score
+- mention count
+- positive ratio
+- positive evidence
+- negative evidence
+
+Never show an isolated score without context.
+
+## 61. Source explorer
+
+Show:
+- total sources
+- total mentions
+- category distribution
+- source cards
+- grouped evidence
+
+Source card:
+name / type / mention count / original link where permitted.
+
+## 62. Review list
+
+Filters:
+- Tümü
+- Olumlu
+- Olumsuz
+- Doğrulanmış
+- Yeni
+
+Review card:
+- rating
+- recommendation
+- verified status when actually verified
+- usage duration
+- title
+- concise content
+- pros / cons
+- helpful action
+- source
+
+Long reviews collapse by default.
+
+## 63. Review detail
+
+Show full review, metadata, product, source, topic and helpful action. Never manufacture verification.
+
+## 64. Price detail
+
+Show:
+- current price
+- historical range
+- lowest price
+- F/P
+- price chart
+- offers
+- stock
+- shipping
+- seller rating when available
+
+Primary CTA: Fiyat alarmı kur
+
+## 65. Price alert
+
+Bottom sheet:
+1. target price
+2. optional drop percentage
+3. notification preference
+4. confirmation
+
+Success:
+Fiyat alarmı kuruldu.
+Target price is displayed.
+
+## 66. Deal detail
+
+Show:
+- deal type
+- product
+- current/previous price
+- discount
+- historical context
+- evidence explaining why it qualifies
+- external store CTA
+
+No fake timers or scarcity.
+
+## 67. Deal radar
+
+Sections:
+- Dip fiyat
+- Gerçek indirim
+- Üstün F/P
+- genuinely time-bound offers
+
+Filters remain horizontal and compact.
+
+## 68. Compare empty
+
+Explain the task:
+Henüz ürün seçmedin.
+2–4 ürünü seç ve farklarını tek ekranda gör.
+
+CTA: Ürün seç
+
+## 69. Compare selector
+
+Search-first product selector. Maximum four products. Explain the limit if a fifth is attempted.
+
+## 70. Compare result
+
+Use horizontally scrollable product headers and sticky metric labels.
+
+Sections:
+- NeDiyor
+- F/P
+- Performance
+- Camera
+- Battery
+- category-specific metrics
+- sentiment
+- price
+
+Default to 'Sadece farkları göster' when the comparison is large.
+
+## 71. Compare decision summary
+
+Summarize context-specific differences:
+- one product may be stronger for camera
+- another for value
+- another for battery
+
+Do not declare a universal winner when criteria do not justify one.
+
+## 72. Product Finder flow
+
+Short wizard:
+1. category
+2. budget
+3. priorities
+4. special needs
+5. result
+
+Show progress and allow back navigation.
+
+## 73. Product Finder result
+
+Show:
+- match percentage
+- product
+- reasons
+- tradeoffs
+- alternatives
+
+CTA: Ürünü incele
+
+## 74. Upgrade Advisor
+
+Inputs:
+- current product
+- target product
+- user priority
+
+Result:
+- before/after
+- measurable differences
+- estimated net cost
+- conditional guidance
+
+## 75. Community Pulse
+
+Prompt:
+Sen ne diyorsun?
+
+Options:
+- Alınır
+- İndirim beklerim
+- Alternatife bakarım
+
+After vote show aggregate results.
+
+## 76. Write review
+
+Guided flow:
+1. rating
+2. recommendation
+3. usage duration
+4. pros
+5. cons
+6. optional text
+7. preview
+8. submit
+
+Persist draft progress.
+
+## 77. Watchlist
+
+Sections:
+- saved products
+- price alerts
+- recently viewed
+
+Saved card should show:
+- score
+- price
+- price change
+- score change
+- alert status
+
+## 78. Notifications
+
+Every notification must explain:
+what changed + why it matters + action.
+
+Example:
+'iPhone 17 Pro fiyatı hedefinin altına indi.'
+CTA: Fırsatı gör
+
+Avoid engagement bait.
+
+## 79. Profile
+
+Keep it simple:
+- profile
+- watchlist
+- price alerts
+- reviews
+- notifications
+- preferences
+- privacy
+- help
+- sign out
+
+Do not turn Profile into a dashboard.
+
+## 80. Settings
+
+Groups:
+Account / Notifications / Appearance / Privacy / About
+
+Use standard settings rows instead of decorative cards.
+
+## 81. Authentication
+
+Login is secondary and contextual.
+
+Support existing providers where backend supports them.
+
+Allow 'Şimdi değil' when appropriate.
+
+## 82. Error system
+
+Every error has:
+- clear explanation
+- next action
+- retry where meaningful
+- preserved input
+
+Examples:
+Network: Bağlantını kontrol et.
+Server: NeDiyor şu anda bu veriyi getiremiyor.
+AI: Analizi tamamlayamadık.
+
+## 83. Offline
+
+Do not block the entire application.
+
+Show cached data with explicit freshness warnings. Never present cached price as live.
+
+## 84. Modal / sheet rules
+
+Use bottom sheets for:
+- filters
+- sorting
+- price alerts
+- contextual actions
+
+Use full-screen sheets for:
+- search
+- AI question flow
+- product finder
+- image viewer
+
+Use alerts only for destructive or critical actions.
+
+Avoid modal stacking.
+
+## 85. Gesture rules
+
+Supported:
+- gallery swipe
+- product rail swipe
+- pull-to-refresh
+- sheet drag
+- pinch zoom
+
+Every essential gesture has a visible/accessibility alternative.
+
+## 86. Responsive/device rules
+
+Support small and large phones, Android and iOS, safe areas and dynamic text. Never hard-code one phone width.
+
+## 87. Accessibility contract
+
+Every interactive component needs:
+- accessible label
+- role
+- state
+- hint where non-obvious
+
+Charts need text equivalents.
+
+Example:
+'NeDiyor skoru 10 üzerinden 8.7.'
+
+## 88. Design system components
+
+Build reusable components before screens:
+AppHeader, BottomTabBar, SearchField, SearchSuggestion, ProductCard, ProductCompactCard, ProductHero, DecisionHero, ScoreBadge, ConfidenceBadge, VerdictBadge, TopicScore, EvidenceCard, SourceCard, ReviewCard, PriceCard, PriceChart, DealCard, AlternativeCard, ComparisonTable, ComparisonHeader, FilterSheet, SortSheet, ActionSheet, AIQuestionCard, AIAnswer, EmptyState, ErrorState, OfflineBanner, Skeleton, Toast and BottomSheet.
+
+No screen should invent a one-off version of an existing component.
+
+## 89. Visual hierarchy
+
+Each screen has:
+- one primary visual
+- one primary action
+- up to two secondary actions
+
+If everything is emphasized, nothing is emphasized.
+
+## 90. Spacing
+
+Use a 4-point base:
+4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48 / 64
+
+Default horizontal padding: 16–20px.
+
+## 91. Touch targets
+
+Minimum 44 × 44 pt.
+Preferred primary CTA: 48–52px height.
+
+## 92. Motion
+
+Default:
+- micro 120–180ms
+- normal 180–250ms
+- large transition 250–400ms
+
+Respect reduced-motion settings.
+
+## 93. Haptics
+
+Only for meaningful confirmation:
+save, remove, vote, alert creation, comparison add and review submission.
+
+## 94. UX writing
+
+Tone:
+Turkish, direct, concise, evidence-based, human.
+
+Prefer:
+'Bu modelin en güçlü tarafı kamera.'
+
+Avoid:
+'Yapay zekâ analizimize göre kamera performansı oldukça etkileyici.'
+
+Prefer:
+'Fiyatı düşerse daha mantıklı.'
+
+Avoid:
+'Bu ürün kesinlikle kaçırılmaması gereken bir fırsattır.'
+
+## 95. Quality gate
+
+Before merge verify:
+- purpose
+- hierarchy
+- back navigation
+- states
+- spacing
+- typography
+- component reuse
+- dark mode
+- real API data
+- no mock values
+- timestamps
+- source attribution
+- accessibility
+- performance
+- offline
+- analytics
+- runtime errors
+
+## 96. Definition of done
+
+A screen is DONE only when:
+- UI matches this design system
+- UX matches its screen contract
+- real data is connected
+- all relevant states exist
+- navigation works
+- accessibility works
+- dark mode works
+- loading/error/empty/offline work
+- analytics are wired
+- no mock content remains
+- no runtime errors remain
+- small and large layouts are tested
+
+No visual-only implementation is acceptable.
+
+## 97. Implementation instruction for AI coding agents
+
+Before implementing any screen, inspect:
+1. design.md
+2. existing API/types
+3. existing web implementation
+4. existing reusable components
+5. real data states
+
+Do not invent another navigation model, color system or duplicate component. Do not replace missing backend data with mock data. If the API cannot support a designed state, identify the missing data contract.
+
+## 98. Final UX architecture
+
+The entire app should feel like:
+
+OPEN → SEARCH → PRODUCT → 'NE DİYOR?' → 'NEDEN?' → 'KANIT NE?' → 'FİYATI İYİ Mİ?' → 'ALTERNATİF VAR MI?' → 'BENİM İÇİN UYGUN MU?' → SAVE / ALERT / COMPARE / SHOP
+
+The core experience is:
+
+**Question → Evidence → Decision → Action.**
